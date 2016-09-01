@@ -1,15 +1,3 @@
-
-# coding: utf-8
-
-# In[3]:
-
-get_ipython().magic(u'load_ext autoreload')
-get_ipython().magic(u'autoreload 2')
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[4]:
-
 from branchynet.net import BranchyNet
 from branchynet.links import *
 import chainer.functions as F
@@ -20,7 +8,7 @@ from chainer import cuda
 
 # Define Network
 
-# In[1]:
+# In[ ]:
 
 from networks import alex_cifar10
 
@@ -31,7 +19,7 @@ branchyNet.training()
 
 # Import Data
 
-# In[2]:
+# In[ ]:
 
 from datasets import pcifar10
 
@@ -40,7 +28,7 @@ x_train,y_train,x_test,y_test = pcifar10.get_data()
 
 # Settings
 
-# In[5]:
+# In[ ]:
 
 TRAIN_BATCHSIZE = 512
 TEST_BATCHSIZE = 1
@@ -49,7 +37,7 @@ TRAIN_NUM_EPOCHS = 50
 
 # Train Main Network
 
-# In[6]:
+# In[ ]:
 
 main_loss, main_acc, main_time = utils.train(branchyNet, x_train, y_train, main=True, batchsize=TRAIN_BATCHSIZE,
                                              num_epoch=TRAIN_NUM_EPOCHS)
@@ -57,7 +45,7 @@ main_loss, main_acc, main_time = utils.train(branchyNet, x_train, y_train, main=
 
 # Train BranchyNet
 
-# In[7]:
+# In[ ]:
 
 TRAIN_NUM_EPOCHS = 100
 branch_loss, branch_acc, branch_time = utils.train(branchyNet, x_train, y_train, batchsize=TRAIN_BATCHSIZE,
@@ -69,13 +57,13 @@ branchyNet.testing()
 
 # Visualizing Network Training
 
-# In[8]:
+# In[ ]:
 
 visualize.plot_layers(main_loss, xlabel='Epochs', ylabel='Training Loss')
 visualize.plot_layers(main_acc, xlabel='Epochs', ylabel='Training Accuracy')
 
 
-# In[9]:
+# In[ ]:
 
 visualize.plot_layers(zip(*branch_loss), xlabel='Epochs', ylabel='Training Loss')
 visualize.plot_layers(zip(*branch_acc), xlabel='Epochs', ylabel='Training Accuracy')
@@ -83,7 +71,7 @@ visualize.plot_layers(zip(*branch_acc), xlabel='Epochs', ylabel='Training Accura
 
 # Run test suite and visualize
 
-# In[11]:
+# In[ ]:
 
 #set network to inference mode
 branchyNet.testing()
@@ -97,13 +85,13 @@ c_baseacc, c_basediff, _, _ = utils.test(branchyNet,x_test,y_test,main=True,batc
 c_basediff = (c_basediff / float(len(y_test))) * 1000.
 
 
-# In[30]:
+# In[ ]:
 
 # Specify thresholds
-thresholds = [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1., 2., 3., 5., 10.]
+thresholds = [0.0001, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 0.75, 1., 5., 10.]
 
 
-# In[20]:
+# In[ ]:
 
 #GPU
 branchyNet.to_gpu()
@@ -119,8 +107,8 @@ g_diffs *= 1000.
 # In[ ]:
 
 visualize.plot_line_tradeoff(g_accs, g_diffs, g_ts, g_exits, g_baseacc, g_basediff, all_samples=False, inc_amt=-0.0001000,
-                             our_label='BranchyLeNet', orig_label='LeNet', xlabel='Runtime (ms)', 
-                             title='LeNet GPU', output_path='_figs/lenet_gpu.pdf')
+                             our_label='BranchyAlexNet', orig_label='AlexNet', xlabel='Runtime (ms)', 
+                             title='AlexNet GPU', output_path='_figs/alexnet_gpu.pdf')
 
 
 # In[ ]:
@@ -135,31 +123,30 @@ c_ts, c_accs, c_diffs, c_exits  = utils.screen_branchy(branchyNet, x_test, y_tes
 c_diffs *= 1000.
 
 
-# In[22]:
+# In[ ]:
 
 visualize.plot_line_tradeoff(c_accs, c_diffs, c_ts, c_exits, c_baseacc, c_basediff, all_samples=False, inc_amt=-0.0001000,
-                             our_label='BranchyLeNet', orig_label='LeNet', xlabel='Runtime (ms)',
-                             title='LeNet CPU', output_path='figs/lenet_cpu.pdf')
+                             our_label='BranchyAlexNet', orig_label='AlexNet', xlabel='Runtime (ms)',
+                             title='AlexNet CPU', output_path='_figs/alexnet_cpu.pdf')
 
 
 # In[ ]:
 
 #Compute table results
 utils.branchy_table_results(c_baseacc, c_basediff, g_basediff, c_accs, c_diffs, g_accs, g_diffs, inc_amt=0.000, 
-                          network='LeNet')
+                          network='AlexNet')
 
 
 # Save model/data
 
-# In[40]:
+# In[ ]:
 
 import dill
 branchyNet.to_cpu()
-with open("_models/lenet_mnist.bn", "w") as f:
+with open("_models/alexnet_cifar10.bn", "w") as f:
     dill.dump(branchyNet, f)
-g_basediff = 1.5839258
-with open("_models/lenet_mnist_gpu_results.pkl", "w") as f:
+with open("_models/alexnet_cifar10_gpu_results.pkl", "w") as f:
     dill.dump({'accs': g_accs, 'rt': g_diffs, 'exits': g_exits, 'ts': g_ts, 'baseacc': g_baseacc, 'basediff': g_basediff}, f)
-with open("_models/lenet_mnist_cpu_results.pkl", "w") as f:
+with open("_models/alexnet_cifar10_cpu_results.pkl", "w") as f:
     dill.dump({'accs': c_accs, 'rt': c_diffs, 'exits': c_exits, 'ts': c_ts, 'baseacc': c_baseacc, 'basediff': c_basediff}, f)
 

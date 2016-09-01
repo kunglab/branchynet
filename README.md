@@ -11,8 +11,14 @@ If you use this codebase, please cite:
       author={Teerapittayanon, Surat and McDanel, Bradley and Kung, HT}
     }
     
-### Dependencies
+### Requirements
+* A machine with a decent GPU
+* Python 2.7
+
+### Python Dependencies
 * chainer
+* matplotlib
+* dill
 
 ### Quickstart
 ```

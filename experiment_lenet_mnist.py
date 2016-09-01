@@ -1,15 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
-get_ipython().magic(u'load_ext autoreload')
-get_ipython().magic(u'autoreload 2')
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[2]:
-
 from branchynet.net import BranchyNet
 from branchynet.links import *
 import chainer.functions as F
@@ -138,7 +126,7 @@ c_diffs *= 1000.
 
 visualize.plot_line_tradeoff(c_accs, c_diffs, c_ts, c_exits, c_baseacc, c_basediff, all_samples=False, inc_amt=-0.0001000,
                              our_label='BranchyLeNet', orig_label='LeNet', xlabel='Runtime (ms)',
-                             title='LeNet CPU', output_path='figs/lenet_cpu.pdf')
+                             title='LeNet CPU', output_path='_figs/lenet_cpu.pdf')
 
 
 # In[ ]:
@@ -156,7 +144,6 @@ import dill
 branchyNet.to_cpu()
 with open("_models/lenet_mnist.bn", "w") as f:
     dill.dump(branchyNet, f)
-g_basediff = 1.5839258
 with open("_models/lenet_mnist_gpu_results.pkl", "w") as f:
     dill.dump({'accs': g_accs, 'rt': g_diffs, 'exits': g_exits, 'ts': g_ts, 'baseacc': g_baseacc, 'basediff': g_basediff}, f)
 with open("_models/lenet_mnist_cpu_results.pkl", "w") as f:

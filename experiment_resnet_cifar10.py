@@ -1,15 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
-get_ipython().magic(u'load_ext autoreload')
-get_ipython().magic(u'autoreload 2')
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[2]:
-
 from branchynet.net import BranchyNet
 from branchynet.links import *
 import chainer.functions as F
@@ -42,9 +30,9 @@ x_train,y_train,x_test,y_test = pcifar10.get_data()
 
 # In[ ]:
 
-TRAIN_BATCHSIZE = 512
+TRAIN_BATCHSIZE = 64
 TEST_BATCHSIZE = 1
-TRAIN_NUM_EPOCHS = 50
+TRAIN_NUM_EPOCHS = 100
 
 
 # Train Main Network
@@ -119,8 +107,8 @@ g_diffs *= 1000.
 # In[ ]:
 
 visualize.plot_line_tradeoff(g_accs, g_diffs, g_ts, g_exits, g_baseacc, g_basediff, all_samples=False, inc_amt=-0.0001000,
-                             our_label='BranchyLeNet', orig_label='LeNet', xlabel='Runtime (ms)', 
-                             title='LeNet GPU', output_path='_figs/lenet_gpu.pdf')
+                             our_label='BranchyResNet', orig_label='ResNet', xlabel='Runtime (ms)', 
+                             title='ResNet GPU', output_path='_figs/resnet_gpu.pdf')
 
 
 # In[ ]:
@@ -138,15 +126,15 @@ c_diffs *= 1000.
 # In[ ]:
 
 visualize.plot_line_tradeoff(c_accs, c_diffs, c_ts, c_exits, c_baseacc, c_basediff, all_samples=False, inc_amt=-0.0001000,
-                             our_label='BranchyLeNet', orig_label='LeNet', xlabel='Runtime (ms)',
-                             title='LeNet CPU', output_path='figs/lenet_cpu.pdf')
+                             our_label='BranchyResNet', orig_label='ResNet', xlabel='Runtime (ms)',
+                             title='ResNet CPU', output_path='_figs/resnet_cpu.pdf')
 
 
 # In[ ]:
 
 #Compute table results
 utils.branchy_table_results(c_baseacc, c_basediff, g_basediff, c_accs, c_diffs, g_accs, g_diffs, inc_amt=0.000, 
-                          network='LeNet')
+                          network='ResNet')
 
 
 # Save model/data
@@ -155,11 +143,10 @@ utils.branchy_table_results(c_baseacc, c_basediff, g_basediff, c_accs, c_diffs, 
 
 import dill
 branchyNet.to_cpu()
-with open("_models/lenet_mnist.bn", "w") as f:
+with open("_models/resnet_cifar10.bn", "w") as f:
     dill.dump(branchyNet, f)
-g_basediff = 1.5839258
-with open("_models/lenet_mnist_gpu_results.pkl", "w") as f:
+with open("_models/resnet_cifar10_gpu_results.pkl", "w") as f:
     dill.dump({'accs': g_accs, 'rt': g_diffs, 'exits': g_exits, 'ts': g_ts, 'baseacc': g_baseacc, 'basediff': g_basediff}, f)
-with open("_models/lenet_mnist_cpu_results.pkl", "w") as f:
+with open("_models/resnet_cifar10_cpu_results.pkl", "w") as f:
     dill.dump({'accs': c_accs, 'rt': c_diffs, 'exits': c_exits, 'ts': c_ts, 'baseacc': c_baseacc, 'basediff': c_basediff}, f)
 
