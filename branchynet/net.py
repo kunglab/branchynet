@@ -8,7 +8,7 @@ import chainer.links as L
 from scipy.stats import entropy
 import types
 
-from links import *
+from links.links import *
 from functions import *
 
 import time

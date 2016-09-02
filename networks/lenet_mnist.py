@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from branchynet.links import *
+from branchynet.links.links import *
 from branchynet.net import BranchyNet
 
 import chainer.links as L
