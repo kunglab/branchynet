@@ -19,6 +19,8 @@ If you use this codebase, please cite:
 * chainer
 * matplotlib
 * dill
+* scikit-image
+* scipy
 
 ### Quickstart
 ```
