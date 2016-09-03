@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from branchynet.links import *
+from branchynet.links.links import *
 from branchynet.links import resnet
 from branchynet.net import BranchyNet
 
@@ -10,16 +10,13 @@ import math
 
 def norm():
     return [FL(F.relu), 
-#             FL(F.max_pooling_2d, 3, 2),
             FL(F.local_response_normalization,n=3, alpha=5e-05, beta=0.75)]
 
 def get_network(percentTrainKeeps=1):
     conv = lambda n: [L.Convolution2D(n, 32,  3, pad=1, stride=1), FL(F.relu)]
     cap2 = lambda n: [FL(F.max_pooling_2d, 3, 2), L.Linear(n, int(n/2)), L.Linear(int(n/2), 10)]
 
-    cap = lambda n: [
-    #     FL(F.max_pooling_2d, 3, 2),
-        L.Linear(n, 10)]
+    cap = lambda n: [L.Linear(n, 10)]
 
     # ResNet-110 for CiFAR10 as presented in the ResNet paper
     w = math.sqrt(2)
@@ -28,9 +25,7 @@ def get_network(percentTrainKeeps=1):
         L.Convolution2D(3, 16, 3, 1, 0, w),
         L.BatchNormalization(16),
         FL(F.relu),
-    #     FL(F.max_pooling_2d, 3, 2)
     ]
-    #network += [Branch([L.Convolution2D(16, 64,  5, pad=2, stride=1)] + norm() +  conv(64) + conv(32) + cap(28800))]
     network += [resnet.ResBlock(16, 16)]
     network += [Branch(norm() +  conv(16) + conv(32) + cap2(7200))]
 
