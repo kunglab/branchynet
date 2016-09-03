@@ -309,19 +309,19 @@ def screen_branchy(branchyNet, x_test, y_test, base_ts, batchsize=1, enumerate_t
 def branchy_table_results(baseacc, c_basediff, g_basediff, c_accs, c_diffs, g_accs, g_diffs, inc_amt=0.01, network='Orig'):
     print 'Network,Hardware,Accuracy,Runtime,Speedup'
     fmt_str = '{},{},{:1.3f},{:1.3f},{:1.2f}'
-    print fmt_str.format(network, 'cpu', baseacc, c_basediff, 1.0)
+    print fmt_str.format(network, 'cpu', baseacc*100, c_basediff, 1.0)
     prev_acc = 0.
     for i, (acc, diff) in enumerate(zip(c_accs, c_diffs)):
         if acc - prev_acc > inc_amt or i == len(c_accs)-1:
             prev_acc = acc
-            print fmt_str.format('Branchy ' + network, 'cpu', acc - baseacc, diff, c_basediff/diff)
+            print fmt_str.format('Branchy ' + network, 'cpu', acc*100, diff, c_basediff/diff)
     
-    print fmt_str.format(network, 'gpu', 0, g_basediff, 1.0)
+    print fmt_str.format(network, 'gpu', baseacc*100, g_basediff, 1.0)
     prev_acc = 0.
     for i, (acc, diff) in enumerate(zip(g_accs, g_diffs)):
         if acc - prev_acc > inc_amt or i == len(g_accs)-1:
             prev_acc = acc
-            print fmt_str.format('Branchy ' + network, 'gpu', acc - baseacc, diff, g_basediff/diff)
+            print fmt_str.format('Branchy ' + network, 'gpu', acc*100, diff, g_basediff/diff)
             
 def compute_network_times(exits, branch_times):
     total_times = []
