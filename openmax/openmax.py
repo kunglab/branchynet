@@ -259,9 +259,10 @@ def get_openmax_scores(features, openmax):
     softmax_vs = sp.hstack([softmax_vs, sp.zeros([softmax_vs.shape[0],1])])
     return openmax_vs, softmax_vs
 
-def plot_openmax_mean(openmax_vs, softmax_vs):
+def plot_openmax_mean(openmax_vs, softmax_vs, title=''):
     import matplotlib.pyplot as plt
     plt.figure(figsize=(10,7))
+    plt.title(title)
     openmax_mean = sp.mean(openmax_vs,0)
     softmax_mean = sp.mean(softmax_vs,0)
     om_handle, = plt.plot(openmax_mean, label='openmax')
