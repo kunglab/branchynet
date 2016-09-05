@@ -33,7 +33,7 @@ def compute_distance(query_channel, channel, mean_vec, distance_type = 'eucos'):
         print "distance type not known: enter either of eucos, euclidean or cosine"
     return query_distance
 
-def compute_channel_distances(mean_train_channel_vector, features):
+def compute_channel_distances(mean_train_channel_vector, features, n_channels=1):
     """
     Input:
     ---------
@@ -45,14 +45,14 @@ def compute_channel_distances(mean_train_channel_vector, features):
     channel_distances: dict of distance distribution from MAV for each channel. 
     distances considered are eucos, cosine and euclidean
     """
-    n_channels = features[0].shape[0]
+    
 
     eucos_dist, eu_dist, cos_dist = [], [], []
     for channel in range(n_channels):
         eu_channel, cos_channel, eu_cos_channel = [], [], []
         # compute channel specific distances
         for feat in features:
-            eu_channel += [spd.euclidean(mean_train_channel_vector[channel, :], feat[channel, :])]
+            eu_channel += [spd.euclidean(mean_train_channel_vector[channel, :], feat[channel, :])/200.]
             cos_channel += [spd.cosine(mean_train_channel_vector[channel, :], feat[channel, :])]
             eu_cos_channel += [spd.euclidean(mean_train_channel_vector[channel, :], feat[channel, :])/200. +
                                spd.cosine(mean_train_channel_vector[channel, :], feat[channel, :])]
@@ -76,37 +76,62 @@ def compute_channel_distances(mean_train_channel_vector, features):
     channel_distances = {'eucos': eucos_dist, 'cosine': cos_dist, 'euclidean':eu_dist}
     return channel_distances
 
-def compute_distances(features, category):
-    """
-    Input:
-    -------
-    mav_fname : path to filename that contains mean activation vector
-    labellist : list of labels from ilsvrc 2012
-    category_name : synset_id
-    """
-    
-    
-    correct_features = []
-    for feature in features:
+def compute_MAV(features, correct_labels, n_classes):
+    correct_features = {}
+    for category in range(n_classes):
+        correct_features[category] = []
+    for i,feature in enumerate(features):
         try:
             predicted_category = feature.argmax()
-            if predicted_category == category:
-                correct_features += [feature]
+            if predicted_category and correct_labels[i] and predicted_category == category:
+                correct_features[predicted_category] += [feature]
         except TypeError:
             continue
-    mean_feature_vec = sp.mean(correct_features,axis=0)
-    distance_distribution = compute_channel_distances(mean_feature_vec, correct_features)
-    return distance_distribution,mean_feature_vec
+    mean_feature_vecs={}
+    for category in range(n_classes):
+        mean_feature_vecs[category] = sp.mean(correct_features[category],axis=0)
+    return mean_feature_vecs
+
+def compute_distances(features, correct_labels):
+    n_channels = features[0].shape[0]
+    n_classes = features[0].shape[1]
+    
+    correct_features = {}
+    for category in range(n_classes):
+        correct_features[category] = []
+    for i,feature in enumerate(features):
+        try:
+            predicted_category = feature.argmax()
+            if predicted_category == correct_labels[i]:
+                correct_features[predicted_category] += [feature]
+        except TypeError:
+            continue
+    mean_feature_vecs = {}
+    distance_distributions = {}
+    for category in range(n_classes):
+        mean_feature_vecs[category] = sp.mean(correct_features[category],axis=0)
+        distance_distributions[category] = compute_channel_distances(mean_feature_vecs[category], correct_features[category], n_channels=n_channels)
+    return distance_distributions,mean_feature_vecs
+
+#    correct_features = []
+#    for feature in features:
+#        try:
+#            predicted_category = feature.argmax()
+#            if predicted_category == category:
+#                correct_features += [feature]
+#        except TypeError:
+#            continue
+#    #mean_feature_vec = sp.mean(correct_features,axis=0)
+#    distance_distribution = compute_channel_distances(mean_feature_vec, correct_features)
+#    return distance_distribution
 
 
 def weibull_tailfitting(meantrain_vecs,
                         distance_distribution, 
                         tailsize = 20, 
-                        distance_type = 'eucos'):
-    
-    n_channels = meantrain_vecs.values()[0].shape[0]
-    n_classes = meantrain_vecs.values()[0].shape[1]
-    
+                        distance_type = 'eucos',
+                        n_channels = 1,
+                        n_classes = 10):
     weibull_model = {}
     for category in range(n_classes):
         weibull_model[category] = {}
@@ -141,7 +166,7 @@ def query_weibull(category, weibull_model, distance_type = 'eucos'):
     
     return category_weibull
 
-def computeOpenMaxProbability(openmax_fc8, openmax_score_u):
+def computeOpenMaxProbability(openmax_fc8, openmax_score_u, n_channels=1, n_classes=10):
     """ Convert the scores in probability value using openmax
     
     Input:
@@ -154,8 +179,6 @@ def computeOpenMaxProbability(openmax_fc8, openmax_score_u):
     by incorporating degree of uncertainity/openness for a given class
     
     """
-    n_channels = openmax_fc8.shape[0]
-    n_classes = openmax_fc8.shape[1]
     
     prob_scores, prob_unknowns = [], []
     for channel in range(n_channels):
@@ -181,10 +204,7 @@ def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum(axis=0) # only difference
 
-def recalibrate_scores(feature, weibull_model, alpharank=10, distance_type='eucos'):
-    n_channels = feature.shape[0]
-    n_classes = feature.shape[1]
-    
+def recalibrate_scores(feature, weibull_model, alpharank=10, distance_type='eucos', n_channels=1, n_classes=10):
     ranked_list = feature.argsort().ravel()[::-1]
     alpha_weights = [((alpharank+1) - i)/float(alpharank) for i in range(1, alpharank+1)]
     
@@ -222,7 +242,7 @@ def recalibrate_scores(feature, weibull_model, alpharank=10, distance_type='euco
     openmax_score_u = sp.asarray(openmax_score_u)
     
     # Pass the recalibrated fc8 scores for the image into openmax    
-    openmax_probab = computeOpenMaxProbability(openmax_fc8, openmax_score_u)
+    openmax_probab = computeOpenMaxProbability(openmax_fc8, openmax_score_u, n_channels = n_channels, n_classes = n_classes)
     softmax_probab = softmax(feature.ravel())
     return sp.asarray(openmax_probab), sp.asarray(softmax_probab)
 
@@ -233,18 +253,15 @@ class OpenMax(object):
         self.tailsize = tailsize
         self.distance_type = distance_type
         self.alpharank = alpharank
-    def fit(self,features):
-        distance_distribution = {}
-        meantrain_vecs = {}
-        for i in range(self.n_classes):
-            distance_distribution[i],meantrain_vecs[i] = compute_distances(features, i)
-        self.weibull_model = weibull_tailfitting(meantrain_vecs, distance_distribution, tailsize=self.tailsize, distance_type=self.distance_type)
+    def fit(self,features, labels):
+        distance_distributions, meantrain_vecs = compute_distances(features, labels)
+        self.weibull_model = weibull_tailfitting(meantrain_vecs, distance_distributions, tailsize=self.tailsize, distance_type=self.distance_type, n_channels = self.n_channels, n_classes = self.n_classes)
         return self
     def transform(self, feature):
-        return recalibrate_scores(feature, self.weibull_model, alpharank=self.alpharank, distance_type=self.distance_type)
+        return recalibrate_scores(feature, self.weibull_model, alpharank=self.alpharank, distance_type=self.distance_type, n_channels = self.n_channels, n_classes = self.n_classes)
 
     
-def expand_dim(features):
+def expand_dims(features):
     return sp.expand_dims(features,axis=1)
 
 def get_openmax_scores(features, openmax):
