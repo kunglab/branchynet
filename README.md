@@ -27,3 +27,11 @@ If you use this codebase, please cite:
 ./get_results.sh
 ```
 Or take a look at the ipython notebooks.
+
+## OpenMax
+### Compiling libMR
+
+```
+cd libMR
+./compile.sh
+```
