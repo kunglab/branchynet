@@ -92,7 +92,7 @@ def compute_MAV(features, correct_labels, n_classes):
         mean_feature_vecs[category] = sp.mean(correct_features[category],axis=0)
     return mean_feature_vecs
 
-def compute_distances(features, correct_labels):
+def compute_distances(features, correct_labels=None):
     n_channels = features[0].shape[0]
     n_classes = features[0].shape[1]
     
@@ -102,7 +102,9 @@ def compute_distances(features, correct_labels):
     for i,feature in enumerate(features):
         try:
             predicted_category = feature.argmax()
-            if predicted_category == correct_labels[i]:
+            if correct_labels is None:
+                correct_features[predicted_category] += [feature]
+            elif predicted_category == correct_labels[i]:
                 correct_features[predicted_category] += [feature]
         except TypeError:
             continue
@@ -145,7 +147,8 @@ def weibull_tailfitting(meantrain_vecs,
         for channel in range(n_channels):
             mr = libmr.MR()
             tailtofit = sorted(distance_scores[channel,:])[-tailsize:]
-            mr.fit_high(tailtofit, len(tailtofit))
+            if len(tailtofit) >= tailsize:
+                mr.fit_high(tailtofit, len(tailtofit))
             weibull_model[category]['weibull_model'] += [mr]
     return weibull_model
 
@@ -253,7 +256,7 @@ class OpenMax(object):
         self.tailsize = tailsize
         self.distance_type = distance_type
         self.alpharank = alpharank
-    def fit(self,features, labels):
+    def fit(self, features, labels=None):
         distance_distributions, meantrain_vecs = compute_distances(features, labels)
         self.weibull_model = weibull_tailfitting(meantrain_vecs, distance_distributions, tailsize=self.tailsize, distance_type=self.distance_type, n_channels = self.n_channels, n_classes = self.n_classes)
         return self

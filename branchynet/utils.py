@@ -71,6 +71,21 @@ def test_augment(branchyNet,x_test,y_test=None,batchsize=10000,main=False):
     
     return overall, totaltime, num_exits
 
+def model_test_batch(model,x_test,batchsize=10000,gpu=False):
+    datasize = x_test.shape[0]
+    ys = []
+    for i in range(0, datasize, batchsize):
+        input_data = x_test[i : i + batchsize].astype(np.float32)
+        x = Variable(input_data, volatile=True)
+        if gpu:
+            x.to_gpu()
+        y = model.test(x).data
+        if gpu:
+            y = y.get()
+        ys.append(y)
+    ys = np.vstack(ys)
+    return ys
+
 def test(branchyNet,x_test,y_test=None,batchsize=10000,main=False):
     datasize = x_test.shape[0]
     
