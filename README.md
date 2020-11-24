@@ -25,7 +25,7 @@ If you use this codebase, please cite:
 
 ### Quickstart
 
-1. Download data.npz from https://drive.google.com/file/d/0Byyuc5LmNmJPWUc5dVdUSms3U1E/view?usp=sharing and put it in datasets/data/pcifar10
+1. Download data.npz from https://drive.google.com/file/d/0Byyuc5LmNmJPWUc5dVdUSms3U1E/view?usp=sharing and put it at datasets/data/pcifar10/data.npz
 2. Run script
 ```
 ./get_results.sh
