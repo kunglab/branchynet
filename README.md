@@ -16,14 +16,35 @@ If you use this codebase, please cite:
 * Python 2.7
 
 ### Python Dependencies
-* chainer
+* chainer==1.17.0
 * matplotlib
 * dill
 * scikit-image
 * scipy
+* scikit-learn
 
 ### Quickstart
+
+1. Download data.npz from https://drive.google.com/file/d/0Byyuc5LmNmJPWUc5dVdUSms3U1E/view?usp=sharing and put it in datasets/data/pcifar10
+2. Run script
 ```
 ./get_results.sh
 ```
 Or take a look at the ipython notebooks.
+
+### Run with Docker
+
+1. Download and install Docker https://www.docker.com/products/docker-desktop
+2. Run
+```
+./docker/build.sh
+./docker/shell.sh
+```
+
+3. After you are inside the container's shell, run
+
+```
+./get_results.sh
+```
+
+For GPU support, you may need to customize Dockerfile to support CUDA. See https://docs.chainer.org/en/v1.17.0/install.html for more information.
